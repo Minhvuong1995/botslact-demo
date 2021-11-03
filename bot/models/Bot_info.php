@@ -19,21 +19,21 @@ class Bot_info extends ActiveRecord
     }
 
     public function getLstBotByID($idChannel){
-        $Bot = Bot_info::find()
+        $bot = Bot_info::find()
         ->where(['id_bot' => $idChannel])
         ->orderBy('name')
         ->asArray()
         ->all();
-        return $Bot; 
+        return $bot; 
     }
     public function getLstBotSend(){
         $date = date("Y-m-d");
         $a = date("w");
         $day_of_week =$a+1;
-        $time = date("H:i:s");
+        $time = date("H:i");
         $day_of_month = sprintf("%02d", date("d"));
         $month =  sprintf("%02d", date("m"));
-        $Sendlist = Bot_info::find()
+        $sendlist = Bot_info::find()
         ->where(['time_send' => $time])
         ->andwhere(['or',['like', 'date_send','%'. $day_of_month . '%', false],['date_send'=>null]])
         ->andwhere(['or',['like', 'month_send','%'. $month . '%', false],['month_send'=>null]])
@@ -41,7 +41,14 @@ class Bot_info extends ActiveRecord
         ->orderBy('name')
         ->asArray()
         ->all();
-        return $Sendlist; 
+        return $sendlist; 
+    }
+
+    public function del($id){
+        $bot = Bot_info::find($id)
+        ->one()
+        ->delete();
+        return $bot ;
     }
 
 }

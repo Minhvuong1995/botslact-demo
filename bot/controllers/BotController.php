@@ -10,7 +10,7 @@ use yii\filters\VerbFilter;
 use app\models\Bot_info;
 class BotController extends BaseController
 {
-    const token = "xoxb-2523231391122-2604981139527-fmMzrsfnSpXdGi2s8cVeyg0v";
+    const token = "xxxxxxxxxxxxxx";
 
     /**
      * Displays homepage.
@@ -19,44 +19,19 @@ class BotController extends BaseController
      */
     public function actionIndex()
     {
-        $info_chanel = $this->Get_listChannel();
+        $info_chanel = $this->getListChannel();
         return $this->render('index', [
             'info_chanel' => $info_chanel,
         ]);
     }
 
-    /**
-     *  get mes from slack.
-     *
-     * @return araydata
-     */
-    public function actionGetms()
-    {
-        $token = $this::token;
-        $url = "https://slack.com/api/conversations.list";
-        $headers[0] = 'Authorization: Bearer ' . $token;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $araydata = [];
-        $araydata = json_decode($response,16);
-        $arr_chanel = [];
-        foreach ($araydata["channels"] as $value){
-            $arr_chanel[$value["id"]] = $value["name"];
-        }
-        var_dump ($arr_chanel);
-        die;
-        return;
-    }
+
     /**
      * Displays about page.
      *
      * @return array
      */
-    private function Get_listChannel()
+    private function getListChannel()
     {
         $token = $this::token;
         $url = "https://slack.com/api/conversations.list";
@@ -70,8 +45,10 @@ class BotController extends BaseController
         $araydata = [];
         $araydata = json_decode($response,16);
         $arr_chanel = [];
-        foreach ($araydata["channels"] as $value){
-            $arr_chanel[$value["id"]] = $value["name"];
+        if(isset($araydata['channels'])){
+            foreach ($araydata["channels"] as $value){
+                $arr_chanel[$value["id"]] = $value["name"];
+            }
         }
         return ($arr_chanel);
     }
@@ -81,12 +58,15 @@ class BotController extends BaseController
      *
      * @return araydata
      */
-    public function actionGetbots()
+    public function actionGet()
     {
         if(Yii::$app->request->post())
         {
-            $id = Yii::$app->request->post('id');
-            $Bot = Bot_info::getLstBotByIDChannel($id);
+	   $id ='';
+            $bot = new Bot_info();
+
+            $id  = Yii::$app->request->post('id');
+            $Bot = $bot->getLstBotByIDChannel($id);
             return json_encode($Bot);
         }
         return;
@@ -97,23 +77,24 @@ class BotController extends BaseController
      *
      * @return change page
      */
-    public function actionEditbots()
+    public function actionEdit()
     {
-        $channel = $this->Get_listChannel();
+        $channel = $this->getListChannel();
         if(Yii::$app->request->get())
         {
             $id = Yii::$app->request->get('id');
             if($id){
-                $Bot = Bot_info::getLstBotByID($id);
+		    $bot = new Bot_info();
+                $Bot = $bot -> getLstBotByID($id);
                 
-                return $this->render('editbots', [
+                return $this->render('edit', [
                 'info_bot' => $Bot[0],
                 'channel'  => $channel,
                 'result'   => true,
                 ]);
             }
         }
-        return $this->render('editbots', [
+        return $this->render('edit', [
             'channel'  => $channel,
             ]);
     }
@@ -123,23 +104,33 @@ class BotController extends BaseController
      *
      * @return change page
      */
-    public function actionSavebot()
+    public function actionSave()
     {
-        $channel = $this->Get_listChannel();
-        $data = Yii::$app->request->post();
+        $channel = $this->getListChannel();
+        $data_post = Yii::$app->request->post();
+        $data['name'] = $data_post['name'];
+        $data['group_id'] = $data_post['group_id'];
+        $data['content'] = $data_post['content'];
+        $data['time_send'] = $data_post['time_send'];
+        $data['date_send'] = $data_post['date_send'];
+        $data['month_send'] = $data_post['month_send'];
+        $data['date_of_week'] = $data_post['date_of_week'];
         unset($data['_csrf']);
-        if(isset($data['id_bot']) &&strlen($data['id_bot'])>0){
-            $bot = Bot_info::findOne($data['id_bot']);
-            unset($data['id_bot']);
+
+        if(isset($data_post['id_bot']) &&strlen($data_post['id_bot'])>0){
+            $bot = Bot_info::findOne($data_post['id_bot']);
             foreach ($data as $key => $value){
                 if(strlen($value)>0){
                     $bot->$key = $value;
                 }
             }
             $bot->save();
-            return $this->render('editbots', [
+            $data['id_bot'] = $data_post['id_bot'];
+            return $this->render('edit', [
                 'channel'  => $channel,
+                'info_bot' => $data,
                 'result'   => true,
+                'save'     =>true,
                 ]);
         }
         $bot = new Bot_info();
@@ -148,11 +139,30 @@ class BotController extends BaseController
             $bot->$key = $value;
             }
         }
-        $bot->save();
-        return $this->render('editbots', [
+        $resurl = $bot->save();
+        $new_id = $bot->getPrimaryKey();
+        $bot = new Bot_info();
+        $bot_new = $bot -> getLstBotByID($new_id);
+        return $this->render('edit', [
             'channel'  => $channel,
-
+            'info_bot' => $bot_new[0],
+            'result'   => true,
+            'save'     =>true,
             ]);
        
+    }
+
+    /**
+     *  delete bot detail.
+     *
+     * @return json
+     */
+    public function actionDelete()
+    {
+        $data_post = Yii::$app->request->post();
+        $id = $data_post['id'];
+        $bot = new Bot_info();
+        $result = $bot ->del($id);
+        return json_encode($result);
     }
 }
