@@ -9,6 +9,7 @@
   #dvLst td, #dvLst th {
     border: 1px solid #ddd;
     padding: 20px;
+    word-wrap: break-word;
   }
   
   #dvLst tr:nth-child(even){background-color: #f2f2f2;}
@@ -21,25 +22,26 @@
     text-align: left;
     background-color: #04AA6D;
     color: white;
+    width: 220px;
   }
   #dvLst .inputfull{
       width: 100%;
   }
-  .linkadd {
+  .link-add {
     width: 100%;
     text-align: center;
     color: #04AA6D;
     background-color: #ddd;
   }
 
-  .linkadd {
+  .link-add {
     background-color: #c3c6eb;
     color: rgb(23, 63, 240);
     text-align: center;
     text-decoration: none;
     display: inline-block;
   }
-  .linkadd:hover {
+  .link-add:hover {
     background-color: #f79f58;
     color: rgb(23, 63, 240);
     text-align: center;

@@ -124,7 +124,7 @@ if(isset($info_bot)){
         
     </tr>
     <tr>
-    <th>Day of week Send</th>
+        <th>Day of week Send</th>
         <td>        
             <input type="checkbox" name="CkAllWeek" id="CkAllWeek">
             <label for="CkAllWeek"> Send day of week </label>
@@ -142,6 +142,21 @@ if(isset($info_bot)){
         </td>
         
     </tr>
+    <tr>
+        <th>Remind</th>
+        <td>
+            <input type="checkbox" name="remind" id="remind" <?php if($edit && $info_bot['remind']!=0) echo 'checked'; ?>  >
+            <label for="CkRemind"> Remind </label>
+            <div id ="RemindDetail">
+                <label for="CkRemind"> Delay time </label>
+                <br>
+                <input type="text" name="time_remind" id="time_remind" <?php if($edit && $info_bot['remind']!=0) echo 'value ='. $info_bot['time_remind'] ; ?> >
+                <br>
+                <label for="CkRemind"> Text redmind </label>
+                <textarea name="text_remind" id="text_remind" rows="3" style="width: 100%;"> <?php if($edit && $info_bot['text_remind']!=0) echo  $info_bot['text_remind'] ; ?> </textarea>
+            </div>
+        </td>
+    </tr>
 </table>
 <br>
 <div style = "float:right;">
@@ -151,6 +166,21 @@ if(isset($info_bot)){
 </form>
 <script type="text/javascript">
 $(document).ready(function() {
+     //CkRemind
+    if($("#remind")[0].checked == false){
+        $("#RemindDetail").hide();
+    }
+    $("#remind").click(function(){
+       
+       if($("#remind")[0].checked == true){
+            $("#RemindDetail").show();
+       }
+       else{
+            $("#RemindDetail").hide();
+       }
+    });
+
+
 
     <?php
         if(isset($save)&&$save){?>
@@ -203,6 +233,7 @@ $(document).ready(function() {
             }
             else{
                 for(var i=0;i<str.length;i++){
+                if (month[i])
                 $("#month"+month[i]+"").prop("checked", true);
             }
             }
@@ -238,7 +269,7 @@ $(document).ready(function() {
     }
     else{
         for(var i=0;i<str.length;i++){
-            $("#week"+week[i]+"").prop("checked", true);
+            $("#week"+week[i+1]+"").prop("checked", true);
         }
     }
 
@@ -266,9 +297,9 @@ $(document).ready(function() {
 
     
     $("#btnSave").click(function(){
-        var fdate= "";
-        var fmonth= "";
-        var fweek = "";
+        var fdate= ",";
+        var fmonth= ",";
+        var fweek = ",";
         //get date
         if($("#CkAllDay")[0].checked == true){
             fdate = "";
@@ -323,7 +354,9 @@ $(document).ready(function() {
                 } 
             }
         }
-        
+        if($("#remind")[0].checked == false){
+            $("#time_remind").val('');
+        }
         $("#date_send").val(fdate);
         $("#month_send").val(fmonth);
         $("#date_of_week").val(fweek);
