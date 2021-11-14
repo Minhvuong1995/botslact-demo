@@ -23,7 +23,7 @@
 <!-- table load bot -->
 <table>
     <br>
-    <tr class="linkadd"> <a class="linkadd" href="<?php echo $root_url.'/index.php?r=bot%2Fedit'?>">ADD BOT</a></tr>
+    <tr class="link-add"> <a class="link-add" href="<?php echo $root_url.'/index.php?r=bot%2Fedit'?>">ADD BOT</a></tr>
     <div id="dvLst">  
     </div>
 </table>

@@ -4,14 +4,14 @@ namespace app\controllers;
 
 use app\models\BotInfo;
 use app\models\remindChannel;
-use app\models\remind_process;
+use app\models\RemindProcess;
 
 class BotCheckController extends BaseController
 {
     const URL_POST_MESSAGE = "https://slack.com/api/chat.postMessage"; //post
     const URL_GET_MESSAGE_HISTORY = "https://slack.com/api/conversations.history"; //get
     const URL_GET_CHANNEL_MEMBERS = "https://slack.com/api/conversations.members";
-    const TOKEN = "xoxb-2523231391122-2604981139527-J16V8Q80e1MNIbdC9OLM1BOp";
+    const TOKEN = "xxxx";
     const LINK_SLACK_APP = "https://vnlabcenter.slack.com/archives/";
 
     /**
@@ -21,7 +21,7 @@ class BotCheckController extends BaseController
      */
     public function actionIndex()
     {
-        $remind_process = new remind_process();
+        $remind_process = new RemindProcess();
         $bot = new BotInfo();
         date_default_timezone_set('Asia/Saigon');
         $send_list = $bot->getListBotSend();
@@ -66,7 +66,7 @@ class BotCheckController extends BaseController
     public function getMes()
     {
         $remind_channel = new RemindChannel();
-        $remind_process = new remind_process();
+        $remind_process = new RemindProcess();
         $list_channel = $remind_channel->getListRemindChannel();
         //check for channel
         foreach ($list_channel as $value) {
@@ -115,7 +115,7 @@ class BotCheckController extends BaseController
 
     private function checkProcessSendMessages()
     {
-        $remind_process = new remind_process();
+        $remind_process = new RemindProcess();
         $remind_channel = new RemindChannel();
         //check process remind
         $list_process = $remind_process->getListRemindProcess_remind();
@@ -337,7 +337,6 @@ class BotCheckController extends BaseController
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-
         $response = curl_exec($ch);
         curl_close($ch);
         $array_data = [];
