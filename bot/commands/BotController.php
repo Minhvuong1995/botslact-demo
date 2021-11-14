@@ -23,13 +23,11 @@ use app\models\Channel;
  */
 class BotController extends Controller
 {
-
-    const urlSendms = "https://slack.com/api/chat.postMessage";//post
-    const urlGetMesHis = "https://slack.com/api/conversations.history";//get
-    const urlGetChannelMember ="https://slack.com/api/conversations.members";
-    const token = "xxx";
-    const timerelay = 60*5; // 5 minute
-    const linkslack = "https://vnlabcenter.slack.com/archives/";
+    const URL_POST_MESSAGE = "https://slack.com/api/chat.postMessage"; //post
+    const URL_GET_MESSAGE_HISTORY = "https://slack.com/api/conversations.history"; //get
+    const URL_GET_CHANNEL_MEMBERS = "https://slack.com/api/conversations.members";
+    const TOKEN = "xxxx";
+    const LINK_SLACK_APP = "https://vnlabcenter.slack.com/archives/";
 
     /**
      * This action will check list bot and remind in channel .
@@ -326,25 +324,26 @@ class BotController extends Controller
      * @param  string ts the latest time(á»‰nt) message in channel
      * @return array List mesages
      */
-    private function getSlackMes($id_channel,$ts){
-        $url = $this::urlGetMesHis;
+    private function getSlackMessages($id_channel, $ts)
+    {
+        $url = $this::URL_GET_MESSAGE_HISTORY;
         $data = [
-            "token" => $this::token,
-            "channel" => $id_channel, //"#mychannel",
+            "token" => $this::TOKEN,
+            "channel" => $id_channel, //"#myChannel",
             "latest" => $ts,
-            "inclusive"=>"true",
-            "limit"=> 1,
-            
+            "inclusive" => "true",
+            "limit" => 1,
+
         ];
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         $response = curl_exec($ch);
         curl_close($ch);
-        $araydata = [];
-        $araydata = json_decode($response,16);
-        return $araydata;
+        $array_data = [];
+        $array_data = json_decode($response, 16);
+        return $array_data;
     }
 
         /**
@@ -352,22 +351,21 @@ class BotController extends Controller
      * @param  string id_channel the id channel 
      * @return array List info user
      */
-    private function getAllMember($id_Channel)
+    public function getAllMember($id_Channel)
     {
-        $url = $this::urlGetChannelMember;
+        $url = $this::URL_GET_CHANNEL_MEMBERS;
         $data = [
-            "token" => $this::token,
-            "channel" => $id_Channel, //"#mychannel",
+            "token" => $this::TOKEN,
+            "channel" => $id_Channel, //"#myChannel",
         ];
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
-        
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         $response = curl_exec($ch);
         curl_close($ch);
-        $araydata = [];
-        $araydata = json_decode($response,16);
-        return $araydata;
+        $array_data = [];
+        $array_data = json_decode($response, 16);
+        return $array_data;
     }
 }
