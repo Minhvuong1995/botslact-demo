@@ -11,17 +11,19 @@ $config = [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
+    'defaultRoute' => 'bot',
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'xCuqKXQMM3dSinWy8XWxxrAqaJTMs1Fs',
+            'cookieValidationKey' => 'AIzaSyDvkqOljyfMQWoS0aegG6hTLFIQJvyrsFo',
         ],
+        
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
             'identityClass' => 'app\models\User',
-            'enableAutoLogin' => true,
+            'enableAutoLogin' => false,
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -29,7 +31,7 @@ $config = [
         'mailer' => [
             'class' => 'yii\swiftmailer\Mailer',
             // send all mails to a file by default. You have to set
-            // 'useFileTransport' to false and configure a transport
+            // 'useFileTransport' to false and configure transport
             // for the mailer to send real emails.
             'useFileTransport' => true,
         ],
@@ -43,6 +45,28 @@ $config = [
             ],
         ],
         'db' => $db,
+        'authClientCollection' => [
+            'class' => 'yii\authclient\Collection',
+            'clients' => [
+                'google' => [
+                    'class' => 'yii\authclient\clients\Google',
+                    'clientId' => '763370038408-pi9hm1o73k3i2rdiv7tg8c9bi0gm90si.apps.googleusercontent.com',
+                    'clientSecret' => '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',
+                ],
+            ],
+        ],
+        'response' => [
+            // ...
+            'formatters' => [
+                \yii\web\Response::FORMAT_JSON => [
+                    'class' => 'yii\web\JsonResponseFormatter',
+                    'prettyPrint' => YII_DEBUG, // use "pretty" output in debug mode
+                    'encodeOptions' => JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+                    // ...
+                ],
+            ],
+        ],
+        
         /*
         'urlManager' => [
             'enablePrettyUrl' => true,
@@ -51,7 +75,6 @@ $config = [
             ],
         ],
         */
-        
     ],
     'params' => $params,
 ];
@@ -69,7 +92,7 @@ if (YII_ENV_DEV) {
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
+        'allowedIPs' => ['*'],
     ];
 }
 

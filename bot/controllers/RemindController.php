@@ -5,10 +5,32 @@ namespace app\controllers;
 
 use Yii;
 use app\models\RemindChannel;
+use app\models\Channel;
 
 class RemindController extends BaseController
 {
     const TOKEN = "xxxx";
+
+     /**
+     * init
+     */
+    public function beforeAction($action)
+    {
+        //check login
+        $session = Yii::$app->session;
+        if (isset($session['login_info'])) {
+            //check expires time
+            if ($session['login_info']['expires_time'] < time()) {
+                unset($session['login_info']);
+                $session['login_error'] = 'Login required';
+                return $this->redirect(['login/index']);
+            }
+        }else {
+            $session['login_error'] = 'Login required';
+            return $this->redirect(['login/index']);
+        }
+        return parent::beforeAction($action);
+    }
 
     /**
      * Displays homepage.
@@ -31,9 +53,9 @@ class RemindController extends BaseController
      */
     public function actionEdit()
     {
-        $info_chanel = $this->getListChannel();
+        $list_chanel = $this->getListChannel();
         return $this->render('edit', [
-            'info_chanel' => $info_chanel,
+            'list_chanel' => $list_chanel,
         ]);
     }
 
@@ -65,9 +87,10 @@ class RemindController extends BaseController
                     $arr_chanel[$value["id"]] = $value["name"];
             }
         }
+        //add channel private in local 
         $channel = new Channel();
-        $local_channel = $channel->getListChannel();
-        foreach ($local_channel as $value) {
+        $list_local_channel = $channel->getListChannel();
+        foreach ($list_local_channel as $channel) {
             $arr_chanel[$value['id_slack_channel']] = $value['name'];
         }
         return ($arr_chanel);

@@ -3,16 +3,34 @@
 namespace app\controllers;
 
 use Yii;
-use yii\filters\AccessControl;
-use yii\web\Controller;
-use yii\web\Response;
-use yii\filters\VerbFilter;
 use app\models\BotInfo;
 use app\models\Channel;
 
+
+
 class BotController extends BaseController
 {
-    const TOKEN = "xxxx";
+    const TOKEN = "xoxb-2523231391122-2604981139527-LPUfbsy5bsG6hSLHzy7HTDyp";
+
+    /**
+     * init
+     */
+    public function beforeAction($action)
+    {
+        //check login
+        $session = Yii::$app->session;
+        if (isset($session['login_info'])) {
+            //check expires time
+            if ($session['login_info']['expires_time'] < time()) {
+                unset($session['login_info']);
+                $session['login_error'] = 'Login required';
+                return $this->redirect(['login/index']);
+            }
+        } else {
+            return $this->redirect(['login/index']);
+        }
+        return parent::beforeAction($action);
+    }
 
     /**
      * Displays homepage.
@@ -74,7 +92,6 @@ class BotController extends BaseController
         if (Yii::$app->request->post()) {
             $id = '';
             $bot = new BotInfo();
-
             $id  = Yii::$app->request->post('id');
             $Bot = $bot->getListBotByIDChannel($id);
             return json_encode($Bot);
@@ -155,16 +172,29 @@ class BotController extends BaseController
                 'save'     => true,
             ]);
         }
+        //update
+
+        return $this ->updateBot($data);
+    }
+
+    /**
+     *  update bot detail.
+     *
+     * @return json
+     */
+    private function updateBot($data_update)
+    {
         $bot = new BotInfo();
-        foreach ($data as $key => $value) {
-            if (!empty($value)) {
-                $bot->$key = $value;
+        foreach ($data_update as $key => $bot_details) {
+            if (!empty($bot_details)) {
+                $bot->$key = $bot_details;
             }
         }
         $result = $bot->save();
         $new_id = $bot->getPrimaryKey();
         $bot = new BotInfo();
         $bot_new = $bot->getListBotByID($new_id);
+        $channel = $this->getListChannel();
         return $this->render('edit', [
             'channel'  => $channel,
             'info_bot' => $bot_new[0],

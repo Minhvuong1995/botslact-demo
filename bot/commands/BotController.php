@@ -23,11 +23,14 @@ use app\models\Channel;
  */
 class BotController extends Controller
 {
+    const TOKEN = "xoxb-2523231391122-2604981139527-LPUfbsy5bsG6hSLHzy7HTDyp";
     const URL_POST_MESSAGE = "https://slack.com/api/chat.postMessage"; //post
     const URL_GET_MESSAGE_HISTORY = "https://slack.com/api/conversations.history"; //get
     const URL_GET_CHANNEL_MEMBERS = "https://slack.com/api/conversations.members";
-    const TOKEN = "xxxx";
     const LINK_SLACK_APP = "https://vnlabcenter.slack.com/archives/";
+    const FLG_SLACK_NOTIFY = 1;
+    const FLG_CONFIG_FALSE = 0;
+    const FLG_CONFIG_TRUE = 2;
 
     /**
      * This action will check list bot and remind in channel .
@@ -38,7 +41,6 @@ class BotController extends Controller
     {   
         $remind_process = new RemindProcess();
         $bot = new BotInfo();
-        date_default_timezone_set('Asia/Saigon');
         $send_list = $bot->getListBotSend();
         foreach ($send_list as $bot) {
             $url = $this::URL_POST_MESSAGE;

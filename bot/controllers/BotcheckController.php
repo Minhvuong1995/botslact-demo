@@ -8,11 +8,15 @@ use app\models\RemindProcess;
 
 class BotCheckController extends BaseController
 {
+    const TOKEN = "xoxb-2523231391122-2604981139527-LPUfbsy5bsG6hSLHzy7HTDyp";
     const URL_POST_MESSAGE = "https://slack.com/api/chat.postMessage"; //post
     const URL_GET_MESSAGE_HISTORY = "https://slack.com/api/conversations.history"; //get
     const URL_GET_CHANNEL_MEMBERS = "https://slack.com/api/conversations.members";
-    const TOKEN = "xxxx";
     const LINK_SLACK_APP = "https://vnlabcenter.slack.com/archives/";
+    const FLG_SLACK_NOTIFY = 1;
+    const FLG_CONFIG_FALSE = 0;
+    const FLG_CONFIG_TRUE = 2;
+
 
     /**
      * index.
@@ -21,9 +25,9 @@ class BotCheckController extends BaseController
      */
     public function actionIndex()
     {
+        date_default_timezone_set('Asia/Saigon');
         $remind_process = new RemindProcess();
         $bot = new BotInfo();
-        date_default_timezone_set('Asia/Saigon');
         $send_list = $bot->getListBotSend();
         foreach ($send_list as $bot) {
             $url = $this::URL_POST_MESSAGE;
@@ -52,9 +56,8 @@ class BotCheckController extends BaseController
                 }
             }
         }
-        $this->getMes();
+        $this->getMessage();
         $this->checkProcessSendMessages();
-
         return;
     }
 
@@ -63,51 +66,44 @@ class BotCheckController extends BaseController
      *
      * @return 
      */
-    public function getMes()
+    public function getMessage()
     {
         $remind_channel = new RemindChannel();
         $remind_process = new RemindProcess();
         $list_channel = $remind_channel->getListRemindChannel();
         //check for channel
-        foreach ($list_channel as $value) {
-            $max_process = $remind_process->getListRemindprocess_Maxts($value['id_channel']);
-            $url = $this::URL_GET_MESSAGE_HISTORY;
+        foreach ($list_channel as $Channel_details) {
+            $max_process = $remind_process->getListRemindprocess_Maxts($Channel_details['id_channel']);
+            $data_post = [];
             // If channels data already exist  
             if ($max_process) {
-                $data = [
+                $data_post = [
                     "token" => $this::TOKEN,
-                    "channel" => $value['id_channel'], //"#myChannel",
+                    "channel" => $Channel_details['id_channel'], //"#myChannel",
                     'oldest' => $max_process,
                 ];
             }
             // First get data channel
             else {
-                $data = [
+                $data_post = [
                     "token" => $this::TOKEN,
-                    "channel" => $value['id_channel'], //"#myChannel",
+                    "channel" => $Channel_details['id_channel'], //"#myChannel",
                     'limit' => 1,
                     'ts' => 'latest',
                 ];
             }
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            $response = curl_exec($ch);
-            curl_close($ch);
-            $array_data = [];
-            $array_data = json_decode($response, 16);
+            $array_message_data = $this->getSlackHistory($data_post);
             //check response
-            if (!$array_data['ok']) {
+            if (!$array_message_data['ok']) {
                 //next chanel
                 continue;
             }
             // Set process send message
-            foreach ($array_data["messages"] as $message) {
+            foreach ($array_message_data["messages"] as $message) {
                 //check process exits 
-                if (!$remind_process->getListRemindProcess($message['ts'], $value['id_channel'])) {
+                if (!$remind_process->getListRemindProcess($message['ts'], $Channel_details['id_channel'])) {
                     //Add new process
-                    $remind_process->AddRemindProcess($message['ts'], $value['id_channel'], time() + $value['time_remind'], NULL, 0);
+                    $remind_process->AddRemindProcess($message['ts'], $Channel_details['id_channel'], time() + $Channel_details['time_remind'], NULL, 0);
                 }
             }
         }
@@ -122,9 +118,9 @@ class BotCheckController extends BaseController
         // scan list remind
         foreach ($list_process as $process) {
             $check_see = [];
-            $flg_notify_channel = 0;
-            $flg_notify_user = 0;
-            $list_notify=[];
+            $flg_notify_channel = $this::FLG_CONFIG_FALSE;
+            $flg_notify_user = $this::FLG_CONFIG_FALSE;
+            $list_notify = [];
             $member = $this->getAllMember($process['id_channel'])['members'];
             foreach ($member as $mem) {
                 $check_see[$mem] = false;
@@ -150,11 +146,11 @@ class BotCheckController extends BaseController
                     foreach ($message['messages'][0]['blocks'][0]['elements'][0]['elements'] as $element) {
                         //if notify channel
                         if ($element['type'] == 'broadcast') {
-                            $flg_notify_channel = 1;
+                            $flg_notify_channel = $this::FLG_SLACK_NOTIFY;
                         }
                         //if notify user 
                         if ($element['type'] == 'user') {
-                            $flg_notify_user = 1;
+                            $flg_notify_user = $this::FLG_SLACK_NOTIFY;
                             $list_notify[] = $element['user_id'];
                         }
                     }
@@ -170,29 +166,21 @@ class BotCheckController extends BaseController
                     if (!$user) {
                         // if not reactions and reply
                         //send remind
-                        $url = $this::URL_POST_MESSAGE;
-                        $data = [
+                        $data_post = [
                             "token" => $this::TOKEN,
                             "channel" => $id, //"#id",
                             "text" => " " . $process['text_remind'] . $this::LINK_SLACK_APP . $process['id_channel'] . '/p' . str_replace(".", "", $process['ts']),
                             "as_user" => true,
                         ];
-                        $ch = curl_init();
-                        curl_setopt($ch, CURLOPT_URL, $url);
-                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-                        $response = curl_exec($ch);
-                        curl_close($ch);
+                        $this->postMessage($data_post);
                     }
                 }
             } else {
-                var_dump( $check_see);
                 $list_channel = $remind_channel->getListRemindChannelByChannelId($process['id_channel']);
-                if(!$list_channel){
+                if (!$list_channel) {
                     $remind_process->updateListRemindProcess($process['id']);
                     continue;
                 }
-                var_dump( $flg_notify_user);
                 //check config notify channel
                 if ($list_channel['check_notify_channel']) {
                     $flg_notify_channel++;
@@ -201,57 +189,44 @@ class BotCheckController extends BaseController
                 if ($list_channel['send_private']) {
                     $flg_notify_user++;
                 }
-                var_dump( $flg_notify_user);
                 //Check notify group or all
                 if ((!$list_channel['check_notify_channel'] && !$list_channel['check_notify_user']) || $flg_notify_channel == 2) {
                     //Send all
-                    if ($list_channel['send_group'] ==1) {
+                    if ($list_channel['send_group'] == 1) {
                         $content = ' ';
                         $content .= $list_channel['text_remind_group'];
-                        foreach ($check_see as $id => $value) {
+                        foreach ($check_see as $id => $check_watched) {
                             // not see
-                            if (!$value) {
+                            if (!$check_watched) {
                                 $content .= ' <@' . $id . '> ';
                             }
                         }
                         //send remind to group
-                        $url = $this::URL_POST_MESSAGE;
-                        $data = [
+                        $data_post = [
                             "token" => $this::TOKEN,
                             "channel" => $process['id_channel'], //"#idchannel",
                             "text" => $content . " " . $this::LINK_SLACK_APP . $process['id_channel'] . '/p' . str_replace(".", "", $process['ts']),
                         ];
-                        $ch = curl_init();
-                        curl_setopt($ch, CURLOPT_URL, $url);
-                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-                        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-                        $response = curl_exec($ch);
-                        curl_close($ch);
+                        $this->postMessage($data_post);
                     }
                     if ($list_channel['send_private']) {
-                        foreach ($check_see as $id => $value) {
+                        foreach ($check_see as $id => $check_watched) {
                             // not see
-                            if (!$value) {
+                            if (!$check_watched) {
                                 //send to user
-                                $url = $this::URL_POST_MESSAGE;
-                                $data = [
+                                $data_post = [
                                     "token" => $this::TOKEN,
                                     "channel" => $id, //"#id",
                                     "text" =>  $list_channel['text_remind_private'] . " " . $this::LINK_SLACK_APP . $process['id_channel'] . '/p' . str_replace(".", "", $process['ts']),
                                     "as_user" => true,
                                 ];
-                                $ch = curl_init();
-                                curl_setopt($ch, CURLOPT_URL, $url);
-                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-                                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-                                $response = curl_exec($ch);
-                                curl_close($ch);
+                                $this->postMessage($data_post);
                             }
                         }
                     }
                 } else {
                     //notify user
-                    if ($flg_notify_user == 2) {
+                    if ($flg_notify_user == $this::FLG_CONFIG_TRUE) {
                         //check send group
                         if ($list_channel['send_group']) {
                             $content = ' ';
@@ -262,37 +237,25 @@ class BotCheckController extends BaseController
                                 }
                             }
                             //send remind to group
-                            $url = $this::URL_POST_MESSAGE;
-                            $data = [
+                            $data_post = [
                                 "token" => $this::TOKEN,
                                 "channel" => $process['id_channel'], //"#idchannel",
                                 "text" => $content . " " . $this::LINK_SLACK_APP . $process['id_channel'] . '/p' . str_replace(".", "", $process['ts']),
                             ];
-                            $ch = curl_init();
-                            curl_setopt($ch, CURLOPT_URL, $url);
-                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-                            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-                            $response = curl_exec($ch);
-                            curl_close($ch);
+                            $this->postMessage($data_post);
                         }
                         //send private
                         if ($list_channel['send_private']) {
                             foreach ($list_notify as $user) {
                                 if (!$check_see[$user]) {
                                     //send to user
-                                    $url = $this::URL_POST_MESSAGE;
-                                    $data = [
+                                    $data_post = [
                                         "token" => $this::TOKEN,
                                         "channel" => $user, //"#id",
                                         "text" =>  $list_channel['text_remind_private'] . " " . $this::LINK_SLACK_APP . $process['id_channel'] . '/p' . str_replace(".", "", $process['ts']),
                                         "as_user" => true,
                                     ];
-                                    $ch = curl_init();
-                                    curl_setopt($ch, CURLOPT_URL, $url);
-                                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-                                    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-                                    $response = curl_exec($ch);
-                                    curl_close($ch);
+                                    $this->postMessage($data_post);
                                 }
                             }
                         }
@@ -344,4 +307,28 @@ class BotCheckController extends BaseController
         return $array_data;
     }
 
+    private function  getSlackHistory($data_post)
+    {
+        $url = $this::URL_GET_MESSAGE_HISTORY;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_post);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $array_message = [];
+        $array_message = json_decode($response, 16);
+        return $array_message;
+    }
+
+    private function postMessage($data_post)
+    {
+        $url = $this::URL_POST_MESSAGE;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_post);
+        $response = curl_exec($ch);
+        curl_close($ch);
+    }
 }

@@ -1,5 +1,5 @@
-<?php $rooturl = Yii::getAlias('@web'); ?>
-<script src="<?php echo $rooturl ?>/assets/f963e8c5/jquery.js"></script>
+<?php $root_url = Yii::getAlias('@web'); ?>
+<script src="<?php echo $root_url ?>/assets/f963e8c5/jquery.js"></script>
 <h2> Bot Detail </h2>
 <?php
 $edit =0;
@@ -7,7 +7,7 @@ if(isset($info_bot)){
     $edit =1;
 }
 ?>
-<form id="saveform" action="<?php echo $rooturl.'/index.php?r=bot%2Fsave'?>" method="POST">
+<form id="saveform" action="<?php echo $root_url.'/index.php?r=bot%2Fsave'?>" method="POST">
     <input type="hidden" name="_csrf" value="<?=Yii::$app->request->getCsrfToken()?>" />
     <input type="hidden" name="id_bot" value="<?php if($edit&&isset($info_bot['id_bot'])) echo $info_bot['id_bot']; ?>" />
     <input type="hidden" name="date_send" id="date_send">
@@ -292,7 +292,7 @@ $(document).ready(function() {
         }
     });
     $("#btnCancel").click(function(){
-        window.location="<?php echo $rooturl.'/index.php?r=bot%2F'?>"
+        window.location="<?php echo $root_url.'/index.php?r=bot%2F'?>"
     });
 
     
