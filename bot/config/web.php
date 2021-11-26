@@ -15,7 +15,7 @@ $config = [
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'AIzaSyDvkqOljyfMQWoS0aegG6hTLFIQJvyrsFo',
+            'cookieValidationKey' => 'xxxx',
         ],
         
         'cache' => [
@@ -50,8 +50,8 @@ $config = [
             'clients' => [
                 'google' => [
                     'class' => 'yii\authclient\clients\Google',
-                    'clientId' => '763370038408-pi9hm1o73k3i2rdiv7tg8c9bi0gm90si.apps.googleusercontent.com',
-                    'clientSecret' => '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',
+                    'clientId' => 'xxx',
+                    'clientSecret' => 'xxx',
                 ],
             ],
         ],

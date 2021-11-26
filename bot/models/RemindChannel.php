@@ -6,21 +6,43 @@ use yii\db\ActiveRecord;
 
 class RemindChannel extends ActiveRecord
 {
-    
-    public function getListRemindChannel(){
+
+    public function getListRemindChannel()
+    {
         $remind = RemindChannel::find()
             ->orderBy('id')
             ->asArray()
             ->all();
-        return $remind; 
+        return $remind;
     }
 
-    public function getListRemindChannelByChannelId($id_channel){
+    public function getRemindChannelByChannelId($id)
+    {
         $remind = RemindChannel::find()
-            ->where(['id_channel' => $id_channel])
+            ->where(['id_channel' => $id])
             ->orderBy('id')
             ->asArray()
             ->one();
-        return $remind; 
+        return $remind;
+    }
+
+    public function getRemindChannelById($id)
+    {
+        $remind = RemindChannel::find()
+            ->where(['id' => $id])
+            ->orderBy('id')
+            ->asArray()
+            ->one();
+        return $remind;
+    }
+
+    public function deleteRemindChannelById($id)
+    {
+        $remind = new RemindChannel();
+        $result = $remind->find()
+            ->where(['id' => $id])
+            ->one()
+            ->delete();
+        return json_encode($result);
     }
 }

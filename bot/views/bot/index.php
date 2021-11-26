@@ -90,7 +90,7 @@ function loadList(data){
 
 //delete bot from channel
 function deleteBot(id){
-    if (confirm('Are you sure to detete bot id:'+id)) {
+    if (confirm('Are you sure to delete bot id:'+id)) {
         // set csrfToken page
         $.ajaxSetup({
             data: <?= \yii\helpers\Json::encode([

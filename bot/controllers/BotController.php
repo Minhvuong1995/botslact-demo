@@ -10,7 +10,7 @@ use app\models\Channel;
 
 class BotController extends BaseController
 {
-    const TOKEN = "xoxb-2523231391122-2604981139527-LPUfbsy5bsG6hSLHzy7HTDyp";
+    const TOKEN = "xxxx";
 
     /**
      * init
@@ -153,7 +153,7 @@ class BotController extends BaseController
             $data['time_remind'] = 0;
             $data['text_remind'] = NULL;
         }
-
+        //update
         if (isset($data_post['id_bot']) && strlen($data_post['id_bot']) > 0) {
             $bot = BotInfo::findOne($data_post['id_bot']);
 
@@ -172,17 +172,16 @@ class BotController extends BaseController
                 'save'     => true,
             ]);
         }
-        //update
-
-        return $this ->updateBot($data);
+        //new
+        return $this ->addNewBot($data);
     }
 
     /**
-     *  update bot detail.
+     *  add bot detail.
      *
      * @return json
      */
-    private function updateBot($data_update)
+    private function addNewBot($data_update)
     {
         $bot = new BotInfo();
         foreach ($data_update as $key => $bot_details) {

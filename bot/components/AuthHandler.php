@@ -46,6 +46,7 @@ class AuthHandler
         $login_info['token_google_auth'] = ArrayHelper::getValue($access_token->getParams(), 'id_token');
         $session['login_info'] =$login_info;
         $user = new User();
+        if(!$user->getUserByAccountId($login_info['id_account']))
         $user -> insertUser($login_info);
         return true;
     }

@@ -37,21 +37,23 @@ AppAsset::register($this);
             ],
         ]);
         $session = Yii::$app->session;
-        echo Nav::widget([
-            'options' => ['class' => 'navbar-nav'],
-            'items' => [
-                ['label' => 'Bot', 'url' => ['/bot/index']],
-                ['label' => 'Remind', 'url' => ['/remind/index']],
-                '<li>'
-                    . Html::beginForm(['/login/logout'], 'post', ['class' => 'form-inline'])
-                    . Html::submitButton(
-                        ' '.(isset($session['login_info']['email']) ? 'Logout ('.$session['login_info']['email'].')' : ' ')  .' ',
-                        ['class' => 'btn btn-link logout']
-                    )
-                    . Html::endForm()
-                    . '</li>'
-            ],
-        ]);
+        if (isset($session['login_info']['email'])) {
+            echo Nav::widget([
+                'options' => ['class' => 'navbar-nav'],
+                'items' => [
+                    ['label' => 'Bot', 'url' => ['/bot/index']],
+                    ['label' => 'Remind', 'url' => ['/remind/index']],
+                    '<li>'
+                        . Html::beginForm(['/login/logout'], 'post', ['class' => 'form-inline'])
+                        . Html::submitButton(
+                            ' ' . (isset($session['login_info']['email']) ? 'Logout (' . $session['login_info']['email'] . ')' : ' ')  . ' ',
+                            ['class' => 'btn btn-link logout']
+                        )
+                        . Html::endForm()
+                        . '</li>'
+                ],
+            ]);
+        }
         NavBar::end();
         ?>
         ?>
@@ -74,7 +76,7 @@ AppAsset::register($this);
         </div>
     </footer>
 
-    <?php $this->endBody(); 
+    <?php $this->endBody();
     ?>
 </body>
 

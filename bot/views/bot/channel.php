@@ -46,7 +46,7 @@ $(document).ready(function() {
 });
 
 function deletechannel(id){
-    if (confirm('Are you sure to detete channel id:'+id)) {
+    if (confirm('Are you sure to delete channel id:'+id)) {
         // set csrfToken page
         $.ajaxSetup({
             data: <?= \yii\helpers\Json::encode([
